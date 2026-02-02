@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Space29 Task App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font-family: Arial; padding: 16px; }
+    input, select, textarea {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #866f65;
+      color: white;
+      border: none;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>🛠 Space29 – New Task</h2>
+
+  <input id="client" placeholder="Client name" />
+  <input id="site" placeholder="Site / Location" />
+  <textarea id="task" placeholder="Task details"></textarea>
+
+  <select id="priority">
+    <option value="Normal">Normal</option>
+    <option value="High">High</option>
+    <option value="Urgent">Urgent</option>
+  </select>
+
+  <button onclick="sendTask()">Submit Task</button>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    function sendTask() {
+      const data = {
+        type: "task",
+        client: document.getElementById("client").value,
+        site: document.getElementById("site").value,
+        task: document.getElementById("task").value,
+        priority: document.getElementById("priority").value
+      };
+
+      tg.sendData(JSON.stringify(data));
+      tg.close();
+    }
+  </script>
+</body>
+</html>

@@ -1,57 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Space29 Task App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
-    body { font-family: Arial; padding: 20px; background:#f5f5f5; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h2 {
+      text-align: center;
+      color: #6f5b53;
+    }
     input, textarea, select, button {
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
+      padding: 12px;
+      margin: 10px 0;
       font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
     button {
       background: #6f5b53;
-      color: white;
+      color: #fff;
       border: none;
+      font-weight: bold;
       cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
     }
   </style>
 </head>
 
 <body>
-<h2>Space29 – New Task</h2>
 
-<input id="client" placeholder="Client Name">
-<input id="site" placeholder="Site / Location">
-<textarea id="task" placeholder="Task Details"></textarea>
+  <h2>Space29 – New Task</h2>
 
-<select id="priority">
-  <option>Normal</option>
-  <option>High</option>
-  <option>Urgent</option>
-</select>
+  <input id="client" placeholder="Client Name *">
+  <input id="site" placeholder="Site / Location">
+  <textarea id="task" placeholder="Task Details *"></textarea>
 
-<button onclick="submitTask()">Submit Task</button>
+  <select id="priority">
+    <option value="Normal">Normal</option>
+    <option value="High">High</option>
+    <option value="Urgent">Urgent</option>
+  </select>
 
-<script>
-function submitTask() {
-  const data = {
-    client: document.getElementById("client").value,
-    site: document.getElementById("site").value,
-    task: document.getElementById("task").value,
-    priority: document.getElementById("priority").value,
-    time: new Date().toISOString()
-  };
+  <button onclick="submitTask()">Submit Task</button>
 
-  fetch("https://hook.us2.make.com/i3jpiak86f4f7mj11j2fhq89mcl1jvc9", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  })
-  .then(() => alert("Task submitted successfully"));
-}
-</script>
+  <script>
+    function submitTask() {
+      const client = document.getElementById("client").value.trim();
+      const site = document.getElementById("site").value.trim();
+      const task = document.getElementById("task").value.trim();
+      const priority = document.getElementById("priority").value;
+
+      if (!client || !task) {
+        alert("❌ Please fill required fields");
+        return;
+      }
+
+      const data = {
+        client: client,
+        site: site,
+        task: task,
+        priority: priority,
+        time: new Date().toISOString()
+      };
+
+      fetch("https://hook.us2.make.com/i3jpiak86f4f7mj11j2fhq89mcl1jvc9", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to submit task");
+        }
+        return response.text();
+      })
+      .then(() => {
+        alert("✅ Task submitted successfully");
+
+        // Clear form
+        document.getElementById("client").value = "";
+        document.getElementById("site").value = "";
+        document.getElementById("task").value = "";
+        document.getElementById("priority").value = "Normal";
+      })
+      .catch(error => {
+        alert("❌ Error: " + error.message);
+      });
+    }
+  </script>
+
 </body>
 </html>

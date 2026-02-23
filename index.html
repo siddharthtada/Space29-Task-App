@@ -54,23 +54,28 @@
 <button onclick="submitTask()">Submit Task</button>
 
 <script>
-/* 🔹 CHANGE THIS TO YOUR PUBLISHED CSV URL */
-const SHEET_CSV_URL = "PASTE_PUBLISHED_CSV_URL_HERE";
+/* 🔴 PUBLISHED CSV URL */
+const SHEET_CSV_URL =
+  "https://docs.google.com/spreadsheets/d/1zfgozCIDHdlp6KaLu3TCrhbM3BTWEFi5eOjhXuTcvqE/pub?output=csv";
 
-/* Load clients from Google Sheet */
+/* Load clients */
 fetch(SHEET_CSV_URL)
   .then(res => res.text())
   .then(csv => {
-    const lines = csv.split("\n");
+    const rows = csv.split("\n").slice(1);
     const clientSelect = document.getElementById("client");
+
     clientSelect.innerHTML = '<option value="">Select Client *</option>';
 
-    lines.slice(1).forEach(line => {
-      const clientName = line.split(",")[0]?.trim();
-      if (clientName) {
+    rows.forEach(row => {
+      const cols = row.split(",");
+      const clientId = cols[0]?.trim();
+      const clientName = cols[1]?.trim();
+
+      if (clientId && clientName) {
         const option = document.createElement("option");
-        option.value = clientName;
-        option.textContent = clientName;
+        option.value = clientId;          // stored value
+        option.textContent = clientName;  // visible name
         clientSelect.appendChild(option);
       }
     });
@@ -81,18 +86,21 @@ fetch(SHEET_CSV_URL)
   });
 
 function submitTask() {
-  const client = document.getElementById("client").value;
+  const clientId = document.getElementById("client").value;
+  const clientName =
+    document.getElementById("client").selectedOptions[0]?.text;
   const site = document.getElementById("site").value.trim();
   const task = document.getElementById("task").value.trim();
   const priority = document.getElementById("priority").value;
 
-  if (!client || !task) {
+  if (!clientId || !task) {
     alert("❌ Please select client and enter task");
     return;
   }
 
   const data = {
-    client,
+    clientId,
+    clientName,
     site,
     task,
     priority,

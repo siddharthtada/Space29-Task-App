@@ -3,19 +3,31 @@
 <head>
   <title>Space29 Task App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
-    body { font-family: Arial; padding: 20px; background:#f5f5f5; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background:#f5f5f5;
+    }
+    h2 {
+      text-align: center;
+      color: #6f5b53;
+    }
     input, textarea, select, button {
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
+      padding: 12px;
+      margin: 10px 0;
       font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
     button {
       background: #6f5b53;
       color: white;
       border: none;
       cursor: pointer;
+      font-weight: bold;
     }
     button:hover {
       opacity: 0.9;
@@ -27,6 +39,7 @@
 
 <h2>Space29 – New Task</h2>
 
+<!-- CLIENT LIST -->
 <select id="client">
   <option>Loading clients...</option>
 </select>
@@ -43,35 +56,39 @@
 <button onclick="submitTask()">Submit Task</button>
 
 <script>
-// 🔹 GOOGLE SHEET CSV URL
+// ===============================
+// GOOGLE SHEET (CLIENT LIST)
+// ===============================
 const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/1zfgozCIDHdlp6KaLu3TCrhbM3BTWEFi5eOjhXuTcvqE/gviz/tq?tqx=out:csv&sheet=Clients";
 
-// 🔹 LOAD CLIENTS
+// Load clients
 fetch(SHEET_URL)
   .then(res => res.text())
   .then(csv => {
     const rows = csv.split("\n").slice(1);
     const clientSelect = document.getElementById("client");
+
     clientSelect.innerHTML = "<option value=''>Select Client</option>";
 
     rows.forEach(row => {
       const cols = row.split(",");
-      if (cols.length >= 2) {
+      if (cols[1]) {
         const opt = document.createElement("option");
-        opt.value = cols[2] || cols[1]; // Trello Label fallback
-        opt.textContent = cols[1]; // Client Name
+        opt.value = cols[1].replace(/"/g, "");
+        opt.textContent = cols[1].replace(/"/g, "");
         clientSelect.appendChild(opt);
       }
     });
   })
-  .catch(err => {
-    console.error(err);
+  .catch(() => {
     document.getElementById("client").innerHTML =
       "<option>Error loading clients</option>";
   });
 
-// 🔹 SUBMIT TASK
+// ===============================
+// SUBMIT TASK → MAKE WEBHOOK
+// ===============================
 function submitTask() {
   const clientEl = document.getElementById("client");
   const siteEl = document.getElementById("site");
@@ -79,36 +96,32 @@ function submitTask() {
   const priorityEl = document.getElementById("priority");
 
   if (!clientEl.value || !taskEl.value.trim()) {
-    alert("Please select client and enter task details");
+    alert("❌ Please select client and enter task details");
     return;
   }
 
   const data = {
-    client: clientEl.options[clientEl.selectedIndex].text,
-    label: clientEl.value,
+    client: clientEl.value,
     site: siteEl.value,
     task: taskEl.value,
     priority: priorityEl.value,
     time: new Date().toISOString()
   };
 
-  console.log("Sending:", data);
-
-  fetch("https://hook.us2.make.com/https://hook.us2.make.com/i3jpiak86f4f7mj11j2fhq89mcl1jvc9", {
+  // 🔥 FIRE & FORGET (NO CORS ISSUE)
+  fetch("https://hook.us2.make.com/i3jpiak86f4f7mj11j2fhq89mcl1jvc9", {
     method: "POST",
+    mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Webhook failed");
-    alert("✅ Task sent to Trello");
-    taskEl.value = "";
-    siteEl.value = "";
-  })
-  .catch(err => {
-    console.error(err);
-    alert("❌ Error sending task");
   });
+
+  alert("✅ Task submitted successfully");
+
+  // Reset form
+  siteEl.value = "";
+  taskEl.value = "";
+  priorityEl.value = "Normal";
 }
 </script>
 

@@ -56,16 +56,13 @@
 <button onclick="submitTask()">Submit Task</button>
 
 <script>
-/* 🔹 GOOGLE SHEET CSV (Clients Sheet)
-   Column example:
-   A = ID
-   B = Client Name
-   C = Trello Label
+/* 🔹 GOOGLE SHEET CSV
+   Column B = Client Name
 */
 const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/1zfgozCIDHdlp6KaLu3TCrhbM3BTWEFi5eOjhXuTcvqE/gviz/tq?tqx=out:csv&sheet=Clients";
 
-/* 🔹 LOAD CLIENTS FROM GOOGLE SHEET */
+/* 🔹 LOAD CLIENTS */
 fetch(SHEET_URL)
   .then(res => res.text())
   .then(csv => {
@@ -76,10 +73,10 @@ fetch(SHEET_URL)
 
     rows.forEach(row => {
       const cols = row.split(",");
-      if (cols.length >= 2) {
+      if (cols[1]) {
         const option = document.createElement("option");
-        option.textContent = cols[1].replace(/"/g,""); // Client name
-        option.value = (cols[2] || cols[1]).replace(/"/g,""); // Label
+        option.textContent = cols[1].replace(/"/g,"");
+        option.value = cols[1].replace(/"/g,"");
         clientSelect.appendChild(option);
       }
     });
@@ -89,7 +86,7 @@ fetch(SHEET_URL)
       "<option>Error loading clients</option>";
   });
 
-/* 🔹 SUBMIT TASK (NO-CORS FETCH) */
+/* 🔹 SUBMIT TASK (NO LABEL, NO CORS ISSUE) */
 function submitTask() {
   const clientEl = document.getElementById("client");
   const siteEl = document.getElementById("site");
@@ -102,8 +99,7 @@ function submitTask() {
   }
 
   const data = {
-    client: clientEl.options[clientEl.selectedIndex].text,
-    label: clientEl.value,
+    client: clientEl.value,
     site: siteEl.value,
     task: taskEl.value,
     priority: priorityEl.value,
@@ -119,7 +115,7 @@ function submitTask() {
 
   alert("✅ Task submitted successfully");
 
-  // reset form
+  // Reset form
   siteEl.value = "";
   taskEl.value = "";
   priorityEl.value = "Normal";

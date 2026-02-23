@@ -15,7 +15,7 @@
       text-align: center;
       color: #6f5b53;
     }
-    input, textarea, select, button {
+    select, textarea, input, button {
       width: 100%;
       padding: 12px;
       margin: 10px 0;
@@ -30,75 +30,94 @@
       font-weight: bold;
       cursor: pointer;
     }
-    button:hover {
-      opacity: 0.9;
-    }
   </style>
 </head>
 
 <body>
 
-  <h2>Space29 – New Task</h2>
+<h2>Space29 – New Task</h2>
 
-  <input id="client" placeholder="Client Name *">
-  <input id="site" placeholder="Site / Location">
-  <textarea id="task" placeholder="Task Details *"></textarea>
+<!-- CLIENT DROPDOWN -->
+<select id="client">
+  <option value="">Loading clients...</option>
+</select>
 
-  <select id="priority">
-    <option value="Normal">Normal</option>
-    <option value="High">High</option>
-    <option value="Urgent">Urgent</option>
-  </select>
+<input id="site" placeholder="Site / Location">
+<textarea id="task" placeholder="Task Details *"></textarea>
 
-  <button onclick="submitTask()">Submit Task</button>
+<select id="priority">
+  <option value="Normal">Normal</option>
+  <option value="High">High</option>
+  <option value="Urgent">Urgent</option>
+</select>
 
-  <script>
-    function submitTask() {
-      const client = document.getElementById("client").value.trim();
-      const site = document.getElementById("site").value.trim();
-      const task = document.getElementById("task").value.trim();
-      const priority = document.getElementById("priority").value;
+<button onclick="submitTask()">Submit Task</button>
 
-      if (!client || !task) {
-        alert("❌ Please fill required fields");
-        return;
+<script>
+/* 🔹 CHANGE THIS TO YOUR PUBLISHED CSV URL */
+const SHEET_CSV_URL = "PASTE_PUBLISHED_CSV_URL_HERE";
+
+/* Load clients from Google Sheet */
+fetch(SHEET_CSV_URL)
+  .then(res => res.text())
+  .then(csv => {
+    const lines = csv.split("\n");
+    const clientSelect = document.getElementById("client");
+    clientSelect.innerHTML = '<option value="">Select Client *</option>';
+
+    lines.slice(1).forEach(line => {
+      const clientName = line.split(",")[0]?.trim();
+      if (clientName) {
+        const option = document.createElement("option");
+        option.value = clientName;
+        option.textContent = clientName;
+        clientSelect.appendChild(option);
       }
+    });
+  })
+  .catch(() => {
+    document.getElementById("client").innerHTML =
+      '<option value="">Failed to load clients</option>';
+  });
 
-      const data = {
-        client: client,
-        site: site,
-        task: task,
-        priority: priority,
-        time: new Date().toISOString()
-      };
+function submitTask() {
+  const client = document.getElementById("client").value;
+  const site = document.getElementById("site").value.trim();
+  const task = document.getElementById("task").value.trim();
+  const priority = document.getElementById("priority").value;
 
-      fetch("https://hook.us2.make.com/i3jpiak86f4f7mj11j2fhq89mcl1jvc9", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Failed to submit task");
-        }
-        return response.text();
-      })
-      .then(() => {
-        alert("✅ Task submitted successfully");
+  if (!client || !task) {
+    alert("❌ Please select client and enter task");
+    return;
+  }
 
-        // Clear form
-        document.getElementById("client").value = "";
-        document.getElementById("site").value = "";
-        document.getElementById("task").value = "";
-        document.getElementById("priority").value = "Normal";
-      })
-      .catch(error => {
-        alert("❌ Error: " + error.message);
-      });
-    }
-  </script>
+  const data = {
+    client,
+    site,
+    task,
+    priority,
+    time: new Date().toISOString()
+  };
+
+  fetch("https://hook.us2.make.com/i3jpiak86f4f7mj11j2fhq89mcl1jvc9", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Submit failed");
+    return res.text();
+  })
+  .then(() => {
+    alert("✅ Task submitted successfully");
+    document.getElementById("client").value = "";
+    document.getElementById("site").value = "";
+    document.getElementById("task").value = "";
+    document.getElementById("priority").value = "Normal";
+  })
+  .catch(err => alert("❌ " + err.message));
+}
+</script>
 
 </body>
 </html>

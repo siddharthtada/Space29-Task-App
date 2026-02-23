@@ -31,9 +31,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-    button:hover {
-      opacity: 0.9;
-    }
   </style>
 </head>
 
@@ -59,33 +56,38 @@
 <button onclick="submitTask()">Submit Task</button>
 
 <script>
-/* ✅ GOOGLE SHEET PUBLISHED CSV URL */
+/* ✅ GOOGLE SHEET DETAILS */
+const SHEET_ID = "1zfgozCIDHdlp6KaLu3TCrhbM3BTWEFi5eOjhXuTcvqE";
+const SHEET_NAME = "Sheet1"; // MUST match tab name exactly
+
 const SHEET_URL =
-"https://docs.google.com/spreadsheets/d/1zfgozCIDHdlp6KaLu3TCrhbM3BTWEFi5eOjhXuTcvqE/gviz/tq?tqx=out:csv&sheet=Clients";
+  `https://docs.google.com/spreadsheets/d/1zfgozCIDHdlp6KaLu3TCrhbM3BTWEFi5eOjhXuTcvqE/gviz/tq?tqx=out:json&sheet=Clients`;
 
-/* LOAD CLIENTS FROM GOOGLE SHEET */
+/* LOAD CLIENTS */
 fetch(SHEET_URL)
-  .then(response => response.text())
-  .then(csv => {
-    const rows = csv.split("\n").slice(1); // skip header
-    const clientSelect = document.getElementById("client");
+  .then(res => res.text())
+  .then(text => {
+    // remove Google’s JS wrapper
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const rows = json.table.rows;
 
+    const clientSelect = document.getElementById("client");
     clientSelect.innerHTML = '<option value="">Select Client *</option>';
 
     rows.forEach(row => {
-      const cols = row.split(",");
-      const clientId = cols[0]?.trim();
-      const clientName = cols[1]?.trim();
+      const clientId = row.c[0]?.v;   // Column A
+      const clientName = row.c[1]?.v; // Column B
 
       if (clientId && clientName) {
         const option = document.createElement("option");
-        option.value = clientId;          // stored value
-        option.textContent = clientName;  // display text
+        option.value = clientId;
+        option.textContent = clientName;
         clientSelect.appendChild(option);
       }
     });
   })
-  .catch(() => {
+  .catch(err => {
+    console.error(err);
     document.getElementById("client").innerHTML =
       '<option value="">❌ Failed to load clients</option>';
   });
@@ -125,15 +127,12 @@ function submitTask() {
   .then(() => {
     alert("✅ Task submitted successfully");
 
-    // reset form
     clientSelect.value = "";
     document.getElementById("site").value = "";
     document.getElementById("task").value = "";
     document.getElementById("priority").value = "Normal";
   })
-  .catch(err => {
-    alert("❌ Error: " + err.message);
-  });
+  .catch(err => alert("❌ " + err.message));
 }
 </script>
 

@@ -14,6 +14,7 @@
     h2 {
       text-align: center;
       color: #6f5b53;
+      margin-bottom: 20px;
     }
     select, textarea, input, button {
       width: 100%;
@@ -30,6 +31,9 @@
       font-weight: bold;
       cursor: pointer;
     }
+    button:hover {
+      opacity: 0.9;
+    }
   </style>
 </head>
 
@@ -43,6 +47,7 @@
 </select>
 
 <input id="site" placeholder="Site / Location">
+
 <textarea id="task" placeholder="Task Details *"></textarea>
 
 <select id="priority">
@@ -54,15 +59,15 @@
 <button onclick="submitTask()">Submit Task</button>
 
 <script>
-/* 🔴 PUBLISHED CSV URL */
+/* ✅ GOOGLE SHEET PUBLISHED CSV URL */
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1zfgozCIDHdlp6KaLu3TCrhbM3BTWEFi5eOjhXuTcvqE/pub?output=csv";
 
-/* Load clients */
+/* LOAD CLIENTS FROM GOOGLE SHEET */
 fetch(SHEET_CSV_URL)
-  .then(res => res.text())
+  .then(response => response.text())
   .then(csv => {
-    const rows = csv.split("\n").slice(1);
+    const rows = csv.split("\n").slice(1); // skip header
     const clientSelect = document.getElementById("client");
 
     clientSelect.innerHTML = '<option value="">Select Client *</option>';
@@ -75,26 +80,27 @@ fetch(SHEET_CSV_URL)
       if (clientId && clientName) {
         const option = document.createElement("option");
         option.value = clientId;          // stored value
-        option.textContent = clientName;  // visible name
+        option.textContent = clientName;  // display text
         clientSelect.appendChild(option);
       }
     });
   })
   .catch(() => {
     document.getElementById("client").innerHTML =
-      '<option value="">Failed to load clients</option>';
+      '<option value="">❌ Failed to load clients</option>';
   });
 
+/* SUBMIT TASK */
 function submitTask() {
-  const clientId = document.getElementById("client").value;
-  const clientName =
-    document.getElementById("client").selectedOptions[0]?.text;
+  const clientSelect = document.getElementById("client");
+  const clientId = clientSelect.value;
+  const clientName = clientSelect.selectedOptions[0]?.text;
   const site = document.getElementById("site").value.trim();
   const task = document.getElementById("task").value.trim();
   const priority = document.getElementById("priority").value;
 
   if (!clientId || !task) {
-    alert("❌ Please select client and enter task");
+    alert("❌ Please select client and enter task details");
     return;
   }
 
@@ -113,17 +119,21 @@ function submitTask() {
     body: JSON.stringify(data)
   })
   .then(res => {
-    if (!res.ok) throw new Error("Submit failed");
+    if (!res.ok) throw new Error("Submission failed");
     return res.text();
   })
   .then(() => {
     alert("✅ Task submitted successfully");
-    document.getElementById("client").value = "";
+
+    // reset form
+    clientSelect.value = "";
     document.getElementById("site").value = "";
     document.getElementById("task").value = "";
     document.getElementById("priority").value = "Normal";
   })
-  .catch(err => alert("❌ " + err.message));
+  .catch(err => {
+    alert("❌ Error: " + err.message);
+  });
 }
 </script>
 

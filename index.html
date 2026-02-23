@@ -3,124 +3,55 @@
 <head>
   <title>Space29 Task App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f5f5f5;
-    }
-    h2 {
-      text-align: center;
-      color: #6f5b53;
-    }
+    body { font-family: Arial; padding: 20px; background:#f5f5f5; }
     input, textarea, select, button {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
+      padding: 10px;
+      margin: 8px 0;
       font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
     }
     button {
       background: #6f5b53;
       color: white;
       border: none;
       cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      opacity: 0.9;
     }
   </style>
 </head>
 
 <body>
-
 <h2>Space29 – New Task</h2>
 
-<!-- CLIENT LIST -->
-<select id="client">
-  <option>Loading clients...</option>
-</select>
-
+<input id="client" placeholder="Client Name">
 <input id="site" placeholder="Site / Location">
 <textarea id="task" placeholder="Task Details"></textarea>
 
 <select id="priority">
-  <option value="Normal">Normal</option>
-  <option value="High">High</option>
-  <option value="Urgent">Urgent</option>
+  <option>Normal</option>
+  <option>High</option>
+  <option>Urgent</option>
 </select>
 
 <button onclick="submitTask()">Submit Task</button>
 
 <script>
-/* 🔹 GOOGLE SHEET CSV
-   Column B = Client Name
-*/
-const SHEET_URL =
-"https://docs.google.com/spreadsheets/d/1zfgozCIDHdlp6KaLu3TCrhbM3BTWEFi5eOjhXuTcvqE/gviz/tq?tqx=out:csv&sheet=Clients";
-
-/* 🔹 LOAD CLIENTS */
-fetch(SHEET_URL)
-  .then(res => res.text())
-  .then(csv => {
-    const rows = csv.split("\n").slice(1);
-    const clientSelect = document.getElementById("client");
-
-    clientSelect.innerHTML = "<option value=''>Select Client</option>";
-
-    rows.forEach(row => {
-      const cols = row.split(",");
-      if (cols[1]) {
-        const option = document.createElement("option");
-        option.textContent = cols[1].replace(/"/g,"");
-        option.value = cols[1].replace(/"/g,"");
-        clientSelect.appendChild(option);
-      }
-    });
-  })
-  .catch(() => {
-    document.getElementById("client").innerHTML =
-      "<option>Error loading clients</option>";
-  });
-
-/* 🔹 SUBMIT TASK (NO LABEL, NO CORS ISSUE) */
 function submitTask() {
-  const clientEl = document.getElementById("client");
-  const siteEl = document.getElementById("site");
-  const taskEl = document.getElementById("task");
-  const priorityEl = document.getElementById("priority");
-
-  if (!clientEl.value || !taskEl.value.trim()) {
-    alert("❌ Please select client and enter task details");
-    return;
-  }
-
   const data = {
-    client: clientEl.value,
-    site: siteEl.value,
-    task: taskEl.value,
-    priority: priorityEl.value,
+    client: document.getElementById("client").value,
+    site: document.getElementById("site").value,
+    task: document.getElementById("task").value,
+    priority: document.getElementById("priority").value,
     time: new Date().toISOString()
   };
 
   fetch("https://hook.us2.make.com/i3jpiak86f4f7mj11j2fhq89mcl1jvc9", {
     method: "POST",
-    mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
-  });
-
-  alert("✅ Task submitted successfully");
-
-  // Reset form
-  siteEl.value = "";
-  taskEl.value = "";
-  priorityEl.value = "Normal";
+  })
+  .then(() => alert("Task submitted successfully"));
 }
 </script>
-
 </body>
 </html>
